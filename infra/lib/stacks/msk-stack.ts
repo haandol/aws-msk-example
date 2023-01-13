@@ -41,7 +41,7 @@ log.retention.bytes=-1
 unclean.leader.election.enable=false
 min.insync.replicas=2
       `,
-      kafkaVersionsList: ['2.6.2'],
+      kafkaVersionsList: ['2.8.1'],
     });
   }
 
@@ -80,7 +80,7 @@ min.insync.replicas=2
 
     const cluster = new msk.Cluster(this, `MskCluster`, {
       clusterName: `${Config.Ns.toLowerCase()}`,
-      kafkaVersion: msk.KafkaVersion.V2_6_2,
+      kafkaVersion: msk.KafkaVersion.V2_8_1,
       numberOfBrokerNodes: 1,
       vpc: props.vpc,
       vpcSubnets,
