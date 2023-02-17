@@ -1,4 +1,4 @@
-# MSK Observability Demo
+# CDK MSK Example
 
 # Prerequisite
 
