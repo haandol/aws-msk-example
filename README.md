@@ -6,31 +6,29 @@
 - node 16.x
 - cdk 2.x
 
-# Installation
+## Configuration
 
 open [**infra/config/dev.toml**](/infra/config/dev.toml) and fill the empty fields
+and copy `config/dev.toml` file to project root as `.toml`
 
 > Remove all optional fields for empty value (empty value will be failed on validation)
-
-and copy `env/dev.toml` file to project root as `.toml`
 
 ```bash
 $ cd infra
 $ cp config/dev.toml .toml
 ```
 
+## Install dependencies
+
 ```bash
+$ cd infra
+$ npm i -g aws-cdk@2.69
 $ npm i
 ```
 
-bootstrap cdk if no one has run it on the target region
+## Provision
 
 ```bash
 $ cdk bootstrap
-```
-
-deploy infra
-
-```
 $ cdk deploy "*" --require-approval never
 ```
