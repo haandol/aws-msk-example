@@ -4,7 +4,6 @@ import * as cw from 'aws-cdk-lib/aws-cloudwatch';
 import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as msk from '@aws-cdk/aws-msk-alpha';
-import { Config } from '../configs/loader';
 
 interface IProps {
   cluster: msk.ICluster;
@@ -51,9 +50,11 @@ export class MskDashboard extends Construct {
   }
 
   newTopic(): sns.ITopic {
+    const ns = this.node.tryGetContext('ns') as string;
+
     return new sns.Topic(this, `NotificationTopic`, {
-      displayName: `${Config.Ns.toLowerCase()}-kafka-notification`,
-      topicName: `${Config.Ns.toLowerCase()}-kafka-notification`,
+      displayName: `${ns.toLowerCase()}-kafka-notification`,
+      topicName: `${ns.toLowerCase()}-kafka-notification`,
     });
   }
 
@@ -161,9 +162,11 @@ export class MskDashboard extends Construct {
   }
 
   newBrokerAlarms(metrics: IMskMetrics, topic: sns.ITopic) {
+    const ns = this.node.tryGetContext('ns') as string;
+
     // ActiveControllerCount
     new cw.Alarm(this, `ActiveControllerAlarm`, {
-      alarmName: `${Config.Ns}KafkaActiveControllerCount`,
+      alarmName: `${ns}KafkaActiveControllerCount`,
       metric: metrics.activeControllerCount,
       comparisonOperator: cw.ComparisonOperator.LESS_THAN_THRESHOLD,
       threshold: 1,
@@ -172,7 +175,7 @@ export class MskDashboard extends Construct {
 
     // OfflinePartitionsCount
     new cw.Alarm(this, `OfflinePartitionsCountAlarm`, {
-      alarmName: `${Config.Ns}KafkaOfflinePartitionsCount`,
+      alarmName: `${ns}KafkaOfflinePartitionsCount`,
       metric: metrics.offlinePartitionsCount,
       comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
       threshold: 0,
@@ -182,7 +185,7 @@ export class MskDashboard extends Construct {
     // UnderReplicatedPartitions
     for (let i = 0; i < metrics.underReplicatedPartitions.length; i++) {
       new cw.Alarm(this, `UnderReplicatedPartitionsAlarm${i}`, {
-        alarmName: `${Config.Ns}KafkaUnderReplicatedPartitions${i}`,
+        alarmName: `${ns}KafkaUnderReplicatedPartitions${i}`,
         metric: metrics.underReplicatedPartitions[i],
         comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
         threshold: 0,
@@ -193,7 +196,7 @@ export class MskDashboard extends Construct {
     // CpuUser
     for (let i = 0; i < metrics.cpuUser.length; i++) {
       new cw.Alarm(this, `CpuUser${i}`, {
-        alarmName: `${Config.Ns}KafkaCpuUser${i}`,
+        alarmName: `${ns}KafkaCpuUser${i}`,
         metric: metrics.cpuUser[i],
         comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
         threshold: 60,
@@ -204,7 +207,7 @@ export class MskDashboard extends Construct {
     // KafkaDataLogsDiskUsed
     for (let i = 0; i < metrics.diskUsed.length; i++) {
       new cw.Alarm(this, `KafkaDataLogsDiskUsed${i}`, {
-        alarmName: `${Config.Ns}KafkaDataLogsDiskUsed${i}`,
+        alarmName: `${ns}KafkaDataLogsDiskUsed${i}`,
         metric: metrics.diskUsed[i],
         comparisonOperator:
           cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
@@ -215,11 +218,13 @@ export class MskDashboard extends Construct {
   }
 
   newApplicationAlarms(metrics: IAppMetrics, topic: sns.ITopic) {
+    const ns = this.node.tryGetContext('ns') as string;
+
     // MaxOffsetLag
     // You can specify the metric using the consumer-group or topic name
     metrics.maxOffsetLag.forEach((metric, consumerGroup) => {
       new cw.Alarm(this, `KafkaMaxOffsetLag-${consumerGroup}`, {
-        alarmName: `${Config.Ns}KafkaMaxOffsetLag-${consumerGroup}`,
+        alarmName: `${ns}KafkaMaxOffsetLag-${consumerGroup}`,
         metric,
         comparisonOperator:
           cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
@@ -230,8 +235,10 @@ export class MskDashboard extends Construct {
   }
 
   newDashboard(mskMetrics: IMskMetrics, appMetrics: IAppMetrics): void {
+    const ns = this.node.tryGetContext('ns') as string;
+
     const dashboard = new cw.Dashboard(this, `KafkaDashboard`, {
-      dashboardName: `${Config.Ns}KafkaDashboard`,
+      dashboardName: `${ns}KafkaDashboard`,
     });
 
     const maxOffsetLagMetrics: cw.IMetric[] = [];

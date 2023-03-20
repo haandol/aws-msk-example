@@ -1,0 +1,11 @@
+[app]
+ns="MskO11y"
+stage="Dev"
+
+[aws]
+account=""
+region="ap-northeast-2"
+
+[vpc]
+id="" # remove the row for empty value
+subnetInfo=[] # remove the row for empty value, e.g.: ["subnet-12345678,az-1","subnet-87654321,az-2"]

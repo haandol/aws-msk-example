@@ -22,7 +22,7 @@ export const SecurityGroupValidator: joi.CustomValidator = (
   helpers
 ) => {
   if (!value.startsWith('sg-')) {
-    return helpers.error('*SECURITY_GROUP_ID should starts with `sg-`');
+    return helpers.error('SECURITY_GROUP_ID should starts with `sg-`');
   }
   return value;
 };

@@ -5,11 +5,11 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as appasg from 'aws-cdk-lib/aws-applicationautoscaling';
 import * as msk from '@aws-cdk/aws-msk-alpha';
 import { CfnConfiguration } from 'aws-cdk-lib/aws-msk';
-import { Config } from '../configs/loader';
 import { MskDashboard } from '../constructs/msk-dashboard';
 
 interface IProps extends StackProps {
   vpc: ec2.IVpc;
+  vpcSubnetInfo?: string[];
 }
 
 export class MskStack extends Stack {
@@ -31,8 +31,10 @@ export class MskStack extends Stack {
   }
 
   newConfiguration(): CfnConfiguration {
+    const ns = this.node.tryGetContext('ns') as string;
+
     return new CfnConfiguration(this, `MskConfiguration`, {
-      name: `${Config.Ns}Configuration`,
+      name: `${ns}Configuration`,
       serverProperties: `
 auto.create.topics.enable=false
 default.replication.factor=3
@@ -49,21 +51,24 @@ min.insync.replicas=2
     props: IProps,
     configurationInfo: msk.ClusterConfigurationInfo
   ): msk.ICluster {
+    const ns = this.node.tryGetContext('ns') as string;
+
     const securityGroup = new ec2.SecurityGroup(this, `MskSecurityGroup`, {
       vpc: props.vpc,
-      securityGroupName: `${Config.Ns}MskSecurityGroup`,
+      securityGroupName: `${ns}MskSecurityGroup`,
     });
     securityGroup.connections.allowInternally(ec2.Port.allTraffic());
 
     // use provided subnets or lookup existing private subnets
     let vpcSubnets: ec2.SubnetSelection;
-    if (Config.VPC.SubnetMap.size === 0) {
+    if (!props.vpcSubnetInfo) {
       vpcSubnets = {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       };
     } else {
       const subnets = [];
-      for (const [subnetId, az] of Config.VPC.SubnetMap) {
+      for (const subnetInfo of props.vpcSubnetInfo) {
+        const [subnetId, az] = subnetInfo.split(',');
         subnets.push(
           ec2.PrivateSubnet.fromPrivateSubnetAttributes(
             this,
@@ -79,7 +84,7 @@ min.insync.replicas=2
     }
 
     const cluster = new msk.Cluster(this, `MskCluster`, {
-      clusterName: `${Config.Ns.toLowerCase()}`,
+      clusterName: `${ns.toLowerCase()}`,
       kafkaVersion: msk.KafkaVersion.V2_8_1,
       numberOfBrokerNodes: 1,
       vpc: props.vpc,
@@ -97,7 +102,7 @@ min.insync.replicas=2
         enablePrometheusNodeExporter: true,
       },
       logging: {
-        cloudwatchLogGroup: new logs.LogGroup(this, `${Config.Ns}MSKLogGroup`, {
+        cloudwatchLogGroup: new logs.LogGroup(this, `${ns}MSKLogGroup`, {
           retention: logs.RetentionDays.TWO_WEEKS,
           removalPolicy: RemovalPolicy.DESTROY,
         }),
@@ -116,7 +121,7 @@ min.insync.replicas=2
       serviceNamespace: appasg.ServiceNamespace.KAFKA,
     });
     new appasg.TargetTrackingScalingPolicy(this, 'MskStorageASGPolicy', {
-      policyName: `${Config.Ns}StorageAutoScaling`,
+      policyName: `${ns}StorageAutoScaling`,
       scalingTarget: target,
       predefinedMetric:
         appasg.PredefinedMetric.KAFKA_BROKER_STORAGE_UTILIZATION,
@@ -125,7 +130,7 @@ min.insync.replicas=2
     });
 
     new CfnOutput(this, `MskSecurityGroupOutput`, {
-      exportName: `${Config.Ns}MskSecurityGroupId`,
+      exportName: `${ns}MskSecurityGroupId`,
       value: securityGroup.securityGroupId,
     });
 

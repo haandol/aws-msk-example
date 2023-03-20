@@ -4,29 +4,35 @@ import * as cdk from 'aws-cdk-lib';
 import { AwsPrototypingChecks } from '@aws-prototyping-sdk/pdk-nag';
 import { VpcStack } from '../lib/stacks/vpc-stack';
 import { MskStack } from '../lib/stacks/msk-stack';
-import { Config } from '../lib/configs/loader';
+import { Config } from '../config/loader';
 
-const app = new cdk.App();
-
-const vpcStack = new VpcStack(app, `${Config.Ns}VpcStack`, {
-  vpcId: Config.VPC.VpcID,
-  env: {
-    account: Config.AWS.Account,
-    region: Config.AWS.Region,
+const app = new cdk.App({
+  context: {
+    ns: Config.app.ns,
+    stage: Config.app.stage,
   },
 });
-const mskStack = new MskStack(app, `${Config.Ns}MskStack`, {
-  vpc: vpcStack.vpc,
+
+const vpcStack = new VpcStack(app, `${Config.app.ns}VpcStack`, {
+  vpcId: Config.vpc.id,
   env: {
-    account: Config.AWS.Account,
-    region: Config.AWS.Region,
+    account: Config.aws.account,
+    region: Config.aws.region,
+  },
+});
+const mskStack = new MskStack(app, `${Config.app.ns}MskStack`, {
+  vpc: vpcStack.vpc,
+  vpcSubnetInfo: Config.vpc.subnetInfo,
+  env: {
+    account: Config.aws.account,
+    region: Config.aws.region,
   },
 });
 mskStack.addDependency(vpcStack);
 
 const tags = cdk.Tags.of(app);
-tags.add(`namespace`, Config.Ns);
-tags.add(`stage`, Config.Stage);
+tags.add(`namespace`, Config.app.ns);
+tags.add(`stage`, Config.app.stage);
 
 app.synth();
 
