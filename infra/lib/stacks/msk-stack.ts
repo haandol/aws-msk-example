@@ -125,7 +125,7 @@ min.insync.replicas=2
 
     new CfnOutput(this, `MskBrokersOutput`, {
       exportName: `${ns}MskBrokers`,
-      value: cluster.bootstrapBrokers,
+      value: cluster.bootstrapBrokersTls,
     });
     new CfnOutput(this, `MskSecurityGroupOutput`, {
       exportName: `${ns}MskSecurityGroup`,
