@@ -5,7 +5,6 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as appasg from 'aws-cdk-lib/aws-applicationautoscaling';
 import * as msk from '@aws-cdk/aws-msk-alpha';
 import { CfnConfiguration } from 'aws-cdk-lib/aws-msk';
-import { MskDashboard } from '../constructs/msk-dashboard';
 
 interface IProps extends StackProps {
   vpc: ec2.IVpc;
@@ -22,11 +21,6 @@ export class MskStack extends Stack {
     this.cluster = this.newCluster(props, {
       arn: config.attrArn,
       revision: 1,
-    });
-
-    new MskDashboard(this, `MskDashboard`, {
-      cluster: this.cluster,
-      brokers: 3,
     });
   }
 
@@ -112,10 +106,10 @@ min.insync.replicas=2
     });
 
     // storage auto scaling
-    // from 1000 (default) to 4096 Gib
+    // from 1000GiB (default) to 16384 GiB
     const target = new appasg.ScalableTarget(this, `MskStorageASGTarget`, {
       minCapacity: 1,
-      maxCapacity: 4096,
+      maxCapacity: 1024 * 16,
       resourceId: cluster.clusterArn,
       scalableDimension: 'kafka:broker-storage:VolumeSize',
       serviceNamespace: appasg.ServiceNamespace.KAFKA,
@@ -129,8 +123,12 @@ min.insync.replicas=2
       disableScaleIn: true,
     });
 
+    new CfnOutput(this, `MskBrokersOutput`, {
+      exportName: `${ns}MskBrokers`,
+      value: cluster.bootstrapBrokers,
+    });
     new CfnOutput(this, `MskSecurityGroupOutput`, {
-      exportName: `${ns}MskSecurityGroupId`,
+      exportName: `${ns}MskSecurityGroup`,
       value: securityGroup.securityGroupId,
     });
 
