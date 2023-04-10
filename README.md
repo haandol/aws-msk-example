@@ -22,7 +22,7 @@ $ cp config/dev.toml .toml
 
 ```bash
 $ cd infra
-$ npm i -g aws-cdk@2.72.1
+$ npm i -g aws-cdk@2.73.0
 $ npm i
 ```
 
