@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { AwsPrototypingChecks } from '@aws-prototyping-sdk/pdk-nag';
 import { VpcStack } from '../lib/stacks/vpc-stack';
 import { MskStack } from '../lib/stacks/msk-stack';
 import { Config } from '../config/loader';
@@ -34,7 +33,4 @@ const tags = cdk.Tags.of(app);
 tags.add(`namespace`, Config.app.ns);
 tags.add(`stage`, Config.app.stage);
 
-app.synth();
-
-cdk.Aspects.of(app).add(new AwsPrototypingChecks({ verbose: true }));
 app.synth();

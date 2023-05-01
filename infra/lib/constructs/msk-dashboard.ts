@@ -35,12 +35,22 @@ export class MskDashboard extends Construct {
     const mskMetrics = this.newMskMetrics(props);
 
     const consumerGroups: IConsumerGroup[] = [
-      /*
       {
         id: 'trip',
         topic: 'trip-service',
       },
-      */
+      {
+        id: 'car',
+        topic: 'car-service',
+      },
+      {
+        id: 'hotel',
+        topic: 'hotel-service',
+      },
+      {
+        id: 'flight',
+        topic: 'flight-service',
+      },
     ];
     const appMetrics = this.newAppMetrics(consumerGroups, props);
 
@@ -63,7 +73,7 @@ export class MskDashboard extends Construct {
       namespace: 'AWS/Kafka',
       metricName: 'ActiveControllerCount',
       period: Duration.minutes(1),
-      statistic: cw.Statistic.SUM,
+      statistic: cw.Stats.SUM,
       dimensionsMap: {
         'Cluster Name': props.cluster.clusterName,
       },
@@ -73,7 +83,7 @@ export class MskDashboard extends Construct {
       namespace: 'AWS/Kafka',
       metricName: 'OfflinePartitionsCount',
       period: Duration.minutes(1),
-      statistic: cw.Statistic.SUM,
+      statistic: cw.Stats.SUM,
       dimensionsMap: {
         'Cluster Name': props.cluster.clusterName,
       },
@@ -86,7 +96,7 @@ export class MskDashboard extends Construct {
           namespace: 'AWS/Kafka',
           metricName: 'UnderReplicatedPartitions',
           period: Duration.minutes(1),
-          statistic: cw.Statistic.SUM,
+          statistic: cw.Stats.SUM,
           dimensionsMap: {
             'Cluster Name': props.cluster.clusterName,
             'Broker ID': `${i}`,
@@ -102,7 +112,7 @@ export class MskDashboard extends Construct {
           namespace: 'AWS/Kafka',
           metricName: 'CpuUser',
           period: Duration.minutes(1),
-          statistic: cw.Statistic.AVERAGE,
+          statistic: cw.Stats.AVERAGE,
           dimensionsMap: {
             'Cluster Name': props.cluster.clusterName,
             'Broker ID': `${i}`,
@@ -118,7 +128,7 @@ export class MskDashboard extends Construct {
           namespace: 'AWS/Kafka',
           metricName: 'KafkaDataLogsDiskUsed',
           period: Duration.minutes(1),
-          statistic: cw.Statistic.AVERAGE,
+          statistic: cw.Stats.AVERAGE,
           dimensionsMap: {
             'Cluster Name': props.cluster.clusterName,
             'Broker ID': `${i}`,
@@ -146,7 +156,7 @@ export class MskDashboard extends Construct {
           namespace: 'AWS/Kafka',
           metricName: 'MaxOffsetLag',
           period: Duration.minutes(1),
-          statistic: cw.Statistic.MAXIMUM,
+          statistic: cw.Stats.MAXIMUM,
           dimensionsMap: {
             'Cluster Name': props.cluster.clusterName,
             'Consumer Group': id,
